@@ -1,0 +1,15 @@
+# root level
+node_modules/
+.env
+
+# backend
+backend/.env
+backend/node_modules/
+backend/temp/
+
+# scanner
+scanner/node_modules/
+scanner/src/
+
+# OS / misc
+.DS_Store
