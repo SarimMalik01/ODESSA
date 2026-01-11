@@ -2,6 +2,7 @@ import LOGO from "../../assets/LOGO.png";
 import LOGO_VIDEO from "../../assets/LOGO_VIDEO.gif";
 import { Share2, MessageSquare } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ShareDialog from "./ShareDialog";
 import CommentSidebar from "./CommentSidebar";
 
@@ -20,21 +21,31 @@ export default function Navbar({
   const [openComments, setOpenComments] = useState(false);
   const [logoHover, setLogoHover] = useState(false);
 
+  const navigate = useNavigate();
+
   return (
     <>
       <div className="h-14 px-6 flex items-center border-b border-slate-800 bg-slate-900">
         {/* Left */}
         <div className="flex items-center gap-4 min-w-0">
-          {/* Logo with hover swap */}
+          {/* Logo with hover swap + navigation */}
           <div
-            className="h-8 w-auto flex items-center"
+            className="
+              h-8 w-auto flex items-center
+              cursor-pointer
+            "
             onMouseEnter={() => setLogoHover(true)}
             onMouseLeave={() => setLogoHover(false)}
+            onClick={() => navigate("/dashboard")}
+            title="Go to Dashboard"
           >
             <img
               src={logoHover ? LOGO_VIDEO : LOGO}
               alt="ODESSA Logo"
-              className="h-10 w-auto object-contain transition-opacity duration-200"
+              className="
+                h-10 w-auto object-contain
+                transition-opacity duration-200
+              "
             />
           </div>
 

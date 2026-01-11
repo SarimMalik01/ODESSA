@@ -32,14 +32,11 @@ export const uploadProject = async (req, res) => {
       });
     console.log(" saving : ");
     const workspacePath = await unzipToWorkspace(file.path, name);
-
+  
     await Project.findByIdAndUpdate(project._id, {
         workspacePath,
         status: "CONFIGURING YOUR PROJECT"
       });
-
-      
-    
     ensureArchitectureConfig(workspacePath);
     await Project.findByIdAndUpdate(project._id, {
         status: "IGNITING ENGINE"
