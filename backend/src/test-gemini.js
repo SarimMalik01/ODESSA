@@ -1,15 +1,15 @@
-import { GoogleGenAI } from "@google/genai";
+// import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({
-  apiKey: "AIzaSyD1-Aoyi48uls9UdMNZpPhMNLUOiy6dtrE"
-});
+// const ai = new GoogleGenAI({
+//   apiKey: 
+// });
 
-console.log("Node version:", process.version);
-console.log("fetch:", typeof fetch);
+// console.log("Node version:", process.version);
+// console.log("fetch:", typeof fetch);
 
-const response = await ai.models.generateContent({
-  model: "gemini-2.5-flash",
-  contents: "Say hello"
-});
+// const response = await ai.models.generateContent({
+//   model: "gemini-2.5-flash",
+//   contents: "Say hello"
+// });
 
-console.log("RESPONSE:", response.text);
+// console.log("RESPONSE:", response.text);
