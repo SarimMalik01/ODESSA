@@ -8,19 +8,19 @@ import {getUniqueProjectName} from "../utils/getUniqueProjectName.js"
 import SharedProject from "../models/sharedProject.model.js"
 export const uploadProject = async (req, res) => {
   try {
-    console.log("➡️ Upload started");
+   
 
     const { file } = req;
     const { name: rawName } = req.body;
     const name = await getUniqueProjectName(req.userId, rawName);
 
-    console.log(" file uploaded : ",name);
+    
 
     if (!file || !name) {
       return res.status(400).json({ message: "File and project name required" });
     }
 
-    console.log(" unzipping : ");
+  
     const project = await Project.create({
         userId: req.userId,
         name,
@@ -30,7 +30,7 @@ export const uploadProject = async (req, res) => {
         gemini: { status: "PENDING" },
         status: "UNZIPPING"
       });
-    console.log(" saving : ");
+   
     const workspacePath = await unzipToWorkspace(file.path, name);
   
     await Project.findByIdAndUpdate(project._id, {
@@ -44,7 +44,7 @@ export const uploadProject = async (req, res) => {
 
       
     fs.unlinkSync(file.path);
-    console.log(" scanning ");
+   
     const scanResult = await runScan(workspacePath);
 
      await Project.findByIdAndUpdate(project._id, {
@@ -52,7 +52,7 @@ export const uploadProject = async (req, res) => {
         normalizedIssues: scanResult.normalizedIssues,
         status: "ANALYSING THROUGHPUT"
       });
-    console.log(" Gemini delegated ");
+    
    
     
     
@@ -104,10 +104,7 @@ export const getAllProjects = async (req, res) => {
     }
   };
 
-  /**
- * GET /api/projects/:projectId
- * Fetch single project with full data
- */
+
 export const getProjectById = async (req, res) => {
     
     try {

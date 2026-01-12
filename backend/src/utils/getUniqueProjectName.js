@@ -1,9 +1,6 @@
 import Project from "../models/summary.db.js";
 export async function getUniqueProjectName(userId, baseName) {
-    // Regex to match:
-    // myportfolio
-    // myportfolio(1)
-    // myportfolio(2)
+   
     const regex = new RegExp(`^${baseName}(\\(\\d+\\))?$`);
   
     const projects = await Project.find(

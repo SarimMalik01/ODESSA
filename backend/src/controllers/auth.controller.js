@@ -24,12 +24,12 @@ export const signup = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    // 🍪 Set cookie
+   
     res.cookie("session", token, {
       httpOnly: true,
-      secure: false,          // true in production (HTTPS)
+      secure: false,         
       sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
     });
 
     res.status(201).json({
@@ -65,12 +65,12 @@ export const login = async (req, res) => {
   
       const token = generateToken(user._id);
   
-      // 🍪 overwrite / set session cookie
+     
       res.cookie("session", token, {
         httpOnly: true,
-        secure: false, // true in production (HTTPS)
+        secure: false, 
         sameSite: "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000, 
       });
   
       return res.status(200).json({

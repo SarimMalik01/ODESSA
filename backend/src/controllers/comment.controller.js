@@ -70,7 +70,7 @@ export const getCommentsByProject = async (req, res) => {
     try {
       const userId = req.userId;
   
-      // 1️⃣ Shared projects where user is recipient
+     
       const sharedProjects = await SharedProject.find({
         "recipients.userId": userId,
         status: "active",
@@ -82,7 +82,6 @@ export const getCommentsByProject = async (req, res) => {
         return res.json([]);
       }
   
-      // 2️⃣ projectId -> accessedAt
       const projectAccessMap = new Map();
   
       for (const sp of sharedProjects) {
@@ -102,12 +101,12 @@ export const getCommentsByProject = async (req, res) => {
         return res.json([]);
       }
   
-      // 3️⃣ Convert projectIds to ObjectId
+      
       const projectIds = Array.from(projectAccessMap.keys()).map(
         (id) => new mongoose.Types.ObjectId(id)
       );
   
-      // 4️⃣ Fetch project names ONCE
+     
       const projects = await Project.find({
         _id: { $in: projectIds },
       })
@@ -118,12 +117,11 @@ export const getCommentsByProject = async (req, res) => {
         projects.map((p) => [p._id.toString(), p.name])
       );
   
-      // 5️⃣ Fetch all comments for those projects
       const comments = await Comment.find({
         projectId: { $in: projectIds },
       }).lean();
   
-      // 6️⃣ Filter unread comments
+      
       const unreadByProjectMap = new Map();
   
       for (const comment of comments) {

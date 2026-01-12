@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const SharedProjectSchema = new mongoose.Schema(
   {
-    // 🔗 Project being shared
+    
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
@@ -10,7 +10,7 @@ const SharedProjectSchema = new mongoose.Schema(
       index: true,
     },
 
-    // 👤 Owner of the project
+   
     owner: {
         userId: {
           type: mongoose.Schema.Types.ObjectId,
@@ -25,7 +25,6 @@ const SharedProjectSchema = new mongoose.Schema(
       },
       
 
-    // 🔐 Token embedded in share link
     sharedToken: {
       type: String,
       required: true,
@@ -33,13 +32,13 @@ const SharedProjectSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ⏰ Expiry of the share link
+  
     expiresAt: {
       type: Date,
       required: true,
     },
 
-    // 👥 Allowed recipients (optional)
+    
     recipients: [
         {
           userId: {
@@ -59,7 +58,7 @@ const SharedProjectSchema = new mongoose.Schema(
       ],
       
     
-    // 🔄 Status for manual revoke / expiry handling
+  
     status: {
       type: String,
       enum: ["active", "expired", "revoked"],
@@ -71,7 +70,6 @@ const SharedProjectSchema = new mongoose.Schema(
   }
 );
 
-// 🔥 Auto-expire documents at DB level
 SharedProjectSchema.index(
   { expiresAt: 1 },
   { expireAfterSeconds: 0 }
