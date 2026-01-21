@@ -7,7 +7,12 @@ const ProjectSchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
-
+    scanId:{
+      type:String,
+      required:true,
+      index:true,
+      unique:true
+    },
     name: {
       type: String,
       required: true
@@ -30,9 +35,23 @@ const ProjectSchema = new mongoose.Schema(
       },
       response: Object
     },
-
-    status:{
-      type:String,
+    seen:{
+      type:Boolean,
+      default:false
+    },
+    status: {
+      type: String,
+      enum: [
+       
+        "ENQUEUEING",
+        "CLONING",
+        "CONFIGURING",
+        "SCANNING",
+        "ANALYZING",
+        "COMPLETED",
+        "FAILED"
+      ],
+      default: "ENQUEUEING"
     }
   },
   { timestamps: true }

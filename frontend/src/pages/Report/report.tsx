@@ -35,8 +35,8 @@ export default function Report() {
     async function fetchProject() {
       try {
         const url = isShared && ownerId
-          ? `http://localhost:5000/api/projects/${projectId}?ownerId=${ownerId}`
-          : `http://localhost:5000/api/projects/${projectId}`;
+          ? `http://127.0.0.1:5000/api/projects/${projectId}?ownerId=${ownerId}`
+          : `http://127.0.0.1:5000/api/projects/${projectId}`;
        
         const res = await fetch(url, {
           credentials: "include",

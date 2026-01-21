@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7
+    container_name: odessa-redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: .
+    container_name: odessa-backend
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      MONGO_URI: ${MONGO_URI}
+      OAUTH_TOKEN_SECRET: ${OAUTH_TOKEN_SECRET}
+    ports:
+      - "5000:5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

@@ -51,7 +51,8 @@ export const createShareLink = async (req, res) => {
           });
   
       res.status(201).json({
-        shareUrl: `http://localhost:5173/report/shared/${sharedToken}`,
+        shareUrl: `http://127.0.0.1:5173/report/shared/${sharedToken}`
+        ,
         expiresAt: sharedProject.expiresAt,
       });
     } catch (err) {

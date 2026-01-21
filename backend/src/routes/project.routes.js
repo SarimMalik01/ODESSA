@@ -1,6 +1,6 @@
 import express from "express";
 import { uploadZip } from "../middleware/upload.middleware.js";
-import { getAllProjects,uploadProject,getProjectById ,getLatestProjectStatus} from "../controllers/project.controller.js";
+import { getAllProjects,uploadProject,getProjectById ,getLatestProjectStatus,getActiveProject} from "../controllers/project.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createShareLink,accessSharedProject,getSharedProjects,markAllCommentsRead } from "../controllers/sharedProject.controller.js";
 
@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.post("/upload", requireAuth,uploadZip, uploadProject);
 router.get("/", requireAuth, getAllProjects);
+router.get("/active", requireAuth, getActiveProject);
 
 router.get(
     "/latest/status",

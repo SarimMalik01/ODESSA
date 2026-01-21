@@ -40,7 +40,7 @@ export default function Sharedprojects() {
     async function fetchSharedProjects() {
       try {
         const res = await fetch(
-          "http://localhost:5000/api/projects/shared",
+          "http://127.0.0.1:5000/api/projects/shared",
           { credentials: "include" }
         );
 

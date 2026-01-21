@@ -50,7 +50,7 @@ export default function UnreadCommentSidebar() {
   const fetchUnread = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/projects/unread-comments",
+        "http://127.0.0.1:5000/api/projects/unread-comments",
         { credentials: "include" }
       );
       const json = await res.json();
@@ -89,7 +89,7 @@ export default function UnreadCommentSidebar() {
 
   const markAllAsRead = async () => {
     await fetch(
-      "http://localhost:5000/api/projects/mark-all-read",
+      "http://127.0.0.1:5000/api/projects/mark-all-read",
       { method: "POST", credentials: "include" }
     );
     fetchUnread();

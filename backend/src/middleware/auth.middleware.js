@@ -5,8 +5,9 @@ export const requireAuth = async (req, res, next) => {
   try {
     const token = req.cookies.session;
 
+
     if (!token) {
-      return res.status(401).json({ message: "Not authenticated" });
+      return res.status(401).json({ message: "Not authenticated buffon" });
     }
   
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

@@ -13,7 +13,7 @@ export default function ProfileModal({ onClose }: Props) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/profile/analytics", {
+        const res = await fetch("http://127.0.0.1:5000/api/profile/analytics", {
           credentials: "include",
         });
         const json = await res.json();

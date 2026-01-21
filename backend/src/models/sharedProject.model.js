@@ -56,6 +56,10 @@ const SharedProjectSchema = new mongoose.Schema(
           },
         },
       ],
+      viewed: {
+        type: Boolean,
+        default: false
+      },
       
     
   

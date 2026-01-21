@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Domain = void 0;
+require("./a");
+require("./b");
+require("./c");
+require("./d");
+require("./e");
+require("./f");
+require("./g");
+require("./h");
+exports.Domain = {};

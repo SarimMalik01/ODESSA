@@ -1,18 +1,21 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import UPLOAD_LOGO from "../../assets/UPLOAD_LOGO.png";
-import LOGO_VIDEO from "../../assets/LOGO_VIDEO.gif"
+import LOGO_VIDEO from "../../assets/LOGO_VIDEO.gif";
+import { Github } from "lucide-react";
+
 /* =========================
    STATUS MAPPING
    ========================= */
-const STATUS_TO_STEP: Record<string, string> = {
-  UNZIPPING: "Unzipping files",
-  "CONFIGURING YOUR PROJECT": "Configuring your project",
-  "IGNITING ENGINE": "Igniting engine",
-  "ANALYSING THROUGHPUT": "Analysing throughput",
-  COMPLETED: "COMPLETED",
-  FAILED: "FAILED",
-};
+   const STATUS_TO_STEP: Record<string, string> = {
+    ENQUEUEING: "Enqueueing your repository",
+    CLONING: "Cloning your repository",
+    CONFIGURING: "Configuring your project",
+    SCANNING: "Igniting engine",
+    ANALYZING: "Analysing throughput",
+    COMPLETED: "Completed",
+    FAILED: "Failed",
+  };
+  
 
 /* =========================
    🔵 LOADING DOTS
@@ -28,17 +31,16 @@ function LoadingDots() {
 }
 
 /* =========================
-   🚀 NEW PROJECT
+   🚀 NEW PROJECT (REPO BASED)
    ========================= */
 export default function NewProject() {
   const [projectName, setProjectName] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [repoUrl, setRepoUrl] = useState("");
 
   // polling state
   const [status, setStatus] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
 
   /* =========================
@@ -50,7 +52,7 @@ export default function NewProject() {
     const interval = setInterval(async () => {
       try {
         const res = await fetch(
-          "http://localhost:5000/api/projects/latest/status",
+          "http://127.0.0.1:5000/api/projects/latest/status",
           { credentials: "include" }
         );
 
@@ -76,46 +78,70 @@ export default function NewProject() {
   }, [status, projectId]);
 
   /* =========================
-     📤 UPLOAD
+     📤 CREATE PROJECT (REPO)
      ========================= */
-  const upload = async () => {
-    if (!file || !projectName.trim()) return;
-
-    if (!file.name.endsWith(".zip")) {
-      alert("Only ZIP files are allowed");
-      return;
-    }
-
-    const form = new FormData();
-    form.append("file", file);
-    form.append("name", projectName.trim());
-
-    const res = await fetch(
-      "http://localhost:5000/api/projects/upload",
-      {
-        method: "POST",
-        credentials: "include",
-        body: form,
+     const upload = async () => {
+      if (!repoUrl.trim() || !projectName.trim()) return;
+    
+      try {
+        const res = await fetch(
+          "http://127.0.0.1:5000/api/projects/upload",
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              url: repoUrl.trim(),
+              name: projectName.trim(),
+            }),
+          }
+        );
+    
+        // 🔐 PRIVATE REPO → OAUTH REQUIRED
+        if (res.status === 401) {
+          const data = await res.json();
+    
+          if (data.code === "OAUTH_REQUIRED") {
+            // Optional UX feedback
+            alert("This is a private repository. Redirecting to GitHub for authorization.");
+    
+            const params = new URLSearchParams({
+              repoUrl: data.repoUrl,
+              projectName: data.projectName,
+            });
+    
+            window.location.href =
+              `http://127.0.0.1:5000/auth/github?${params.toString()}`;
+    
+            return;
+          }
+        }
+    
+        // ❌ Any other error
+        if (!res.ok) {
+          alert("Failed to enqueue project");
+          return;
+        }
+    
+        // ✅ PUBLIC REPO → START PIPELINE UI
+        setStatus("ENQUEUEING");
+    
+      } catch (err) {
+        console.error("Upload failed:", err);
+        alert("Something went wrong");
       }
-    );
-
-    if (!res.ok) {
-      alert("Upload failed");
-      return;
-    }
-
-    // start pipeline UI
-    setStatus("UNZIPPING");
-  };
+    };
+    
 
   const isProcessing =
     status !== null && status !== "COMPLETED" && status !== "FAILED";
 
   return (
     <div className="rounded-2xl bg-white/5 p-10">
-
       {/* =========================
-          📤 UPLOAD UI
+          📤 INPUT UI
          ========================= */}
       {!status && (
         <div className="flex flex-col items-center gap-6">
@@ -132,43 +158,47 @@ export default function NewProject() {
             "
           />
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".zip"
-            className="hidden"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-          />
+<div
+  className="
+    flex items-center
+    w-96
+    rounded-lg
+    bg-white/10
+    border border-white/20
+    focus-within:ring-2 focus-within:ring-blue-500/60
+  "
+>
+  {/* GitHub icon */}
+  <div className="pl-3 pr-2 text-white/60">
+    <Github className="h-4 w-4" />
+  </div>
 
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="
-              w-64 h-40 rounded-xl
-              border border-dashed border-white/30
-              flex flex-col items-center justify-center
-              cursor-pointer
-              hover:border-blue-400 hover:bg-white/5
-              transition
-            "
-          >
-            <img
-              src={UPLOAD_LOGO}
-              alt="Upload"
-              className="h-16 w-16 mb-3 opacity-90"
-            />
+  {/* Divider */}
+  <div className="h-5 w-px bg-white/20" />
 
-            <p className="text-sm text-white/80">
-              {file ? file.name : "Upload ZIP folder"}
-            </p>
+  {/* Input */}
+  <input
+    type="text"
+    placeholder="Paste GitHub repository URL"
+    value={repoUrl}
+    onChange={(e) => setRepoUrl(e.target.value)}
+    className="
+      flex-1
+      bg-transparent
+      px-3 py-2
+      text-white
+      placeholder-white/40
+      focus:outline-none
+    "
+  />
+</div>
 
-            <p className="text-xs text-white/40 mt-1">
-              Click to choose file
-            </p>
-          </div>
+
+
 
           <button
             onClick={upload}
-            disabled={!file || !projectName.trim()}
+            disabled={!repoUrl.trim() || !projectName.trim()}
             className="
               px-6 py-2 rounded-full
               bg-blue-600/80 hover:bg-blue-600
@@ -176,7 +206,7 @@ export default function NewProject() {
               transition
             "
           >
-            Upload ZIP
+            Analyse Repository
           </button>
         </div>
       )}
@@ -185,22 +215,15 @@ export default function NewProject() {
           🔁 PIPELINE STATUS
          ========================= */}
       {status && (
-        <div
-          key={status}
-          className="
-            flex flex-col items-center space-y-4
-            transition-all duration-500 ease-out
-            animate-fade-in
-          "
-        >
-             {/* 🔄 Processing Animation */}
-    {isProcessing && (
-      <img
-        src={LOGO_VIDEO}
-        alt="Processing"
-        className="h-20 w-20 mb-1 opacity-90"
-      />
-    )}
+        <div className="flex flex-col items-center space-y-4 animate-fade-in">
+          {isProcessing && (
+            <img
+              src={LOGO_VIDEO}
+              alt="Processing"
+              className="h-20 w-20 mb-1 opacity-90"
+            />
+          )}
+
           <p className="text-white/70 text-sm tracking-wide flex items-center">
             {STATUS_TO_STEP[status] ?? "Processing"}
             {isProcessing && <LoadingDots />}

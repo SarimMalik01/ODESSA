@@ -13,7 +13,7 @@ export default function SharedReportGate() {
     const verifyAccess = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/projects/shared/${token}`,
+          `http://127.0.0.1:5000/api/projects/shared/${token}`,
           { credentials: "include" }
         );
 

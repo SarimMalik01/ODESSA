@@ -5,6 +5,7 @@ import MyProjects from "./MyProjects";
 import NewProject from "./NewProject";
 import UnreadCommentSidebar from "./UnreadCommentSidebar";
 import ProfileModal from "./ProfileModal";
+import ActiveScanCard from "../Dashboard/ActiveScanCard";
 
 import PROFILE_LOGO from "../../assets/PROFILE_LOGO.png";
 
@@ -70,8 +71,11 @@ export default function Dashboard() {
             {activeTab === "projects" && <MyProjects />}
             {activeTab === "new" && <NewProject />}
           </div>
-
-          <UnreadCommentSidebar />
+          
+          <div className="w-[340px] shrink-0 flex flex-col gap-4">
+    <ActiveScanCard />
+    <UnreadCommentSidebar />
+  </div>
         </div>
       </div>
 

@@ -10,7 +10,7 @@ export default function ProtectedRoute({
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/me", {
+    fetch("http://127.0.0.1:5000/api/auth/me", {
       credentials: "include",
     })
       .then((res) => {

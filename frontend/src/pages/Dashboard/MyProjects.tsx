@@ -16,7 +16,7 @@ export default function MyProjects() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/projects", {
+    fetch("http://127.0.0.1:5000/api/projects", {
       credentials: "include",
     })
       .then((res) => res.json())

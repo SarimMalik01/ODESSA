@@ -30,7 +30,7 @@ export default function ShareDialog({
       setError(null);
 
       const res = await fetch(
-        `http://localhost:5000/api/projects/${projectId}/share`,
+        `http://127.0.0.1:5000/api/projects/${projectId}/share`,
         {
           method: "POST",
           credentials: "include",

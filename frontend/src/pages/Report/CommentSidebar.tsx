@@ -67,7 +67,7 @@ export default function CommentSidebar({
   useEffect(() => {
     if (!open) return;
 
-    fetch(`http://localhost:5000/api/projects/${projectId}/comments`, {
+    fetch(`http://127.0.0.1:5000/api/projects/${projectId}/comments`, {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -87,7 +87,7 @@ export default function CommentSidebar({
     if (!content.trim()) return;
 
     const res = await fetch(
-      `http://localhost:5000/api/projects/${projectId}/comments`,
+      `http://127.0.0.1:5000/api/projects/${projectId}/comments`,
       {
         method: "POST",
         credentials: "include",

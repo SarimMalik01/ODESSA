@@ -1,85 +1,143 @@
-import fs from "fs";
-import { unzipToWorkspace } from "../utils/unzip.js";
-import { runScan } from "../scanner/scanner.adapter.js";
-import { ensureArchitectureConfig } from "../utils/ensureArchitectureConfig.js";
-import { enrichWithGemini } from "../llm/enrichWithGemini.js";
+// import fs from "fs";
+// import { unzipToWorkspace } from "../utils/unzip.js";
+// import { runScan } from "../scanner/scanner.adapter.js";
+// import { ensureArchitectureConfig } from "../utils/ensureArchitectureConfig.js";
+// import { enrichWithGemini } from "../llm/enrichWithGemini.js";
 import Project from "../models/summary.db.js";
 import {getUniqueProjectName} from "../utils/getUniqueProjectName.js"
 import SharedProject from "../models/sharedProject.model.js"
+
+import crypto from "crypto";
+import {scanQueue} from "../queues/scanQueue.js";
+import {isRepoPublic} from "../utils/checkRepoAccessibility.js"
+
 export const uploadProject = async (req, res) => {
   try {
    
+    const { url, name: rawName } = req.body;
 
-    const { file } = req;
-    const { name: rawName } = req.body;
+    if (!url || !rawName) {
+      return res.status(400).json({
+        message: "URL and project name required"
+      });
+    }
+    const isPublic = await isRepoPublic(url);
+
+    if (!isPublic) {
+      return res.status(401).json({
+        code: "OAUTH_REQUIRED",
+        provider: "github",
+        repoUrl: url,
+        projectName: rawName,
+        message:"This is a private repository. Please connect Github"
+      });
+    }
+
+
     const name = await getUniqueProjectName(req.userId, rawName);
+    const scanId = crypto.randomUUID();
+
+    const project = await Project.create({
+      userId: req.userId,
+      name,
+      scanId,
+      workspacePath: null,
+      fileTree: null,
+      normalizedIssues: null,
+      gemini: { status: "PENDING" },
+      status: "ENQUEUEING",
+      seen:false
+    });
+
+    await scanQueue.add(
+      "scan-project",
+      {
+        scanId,
+        repoUrl: url
+      },
+      {
+        attempts: 1,
+        removeOnComplete: true,
+        removeOnFail: false
+      }
+    );
+
+    return res.status(202).json({
+      message: "Project enqueued for scanning",
+      projectId: project._id,
+      scanId
+    });
+
+    // const { file } = req;
+    // const { name: rawName } = req.body;
+    // const name = await getUniqueProjectName(req.userId, rawName);
 
     
 
-    if (!file || !name) {
-      return res.status(400).json({ message: "File and project name required" });
-    }
+    // if (!file || !name) {
+    //   return res.status(400).json({ message: "File and project name required" });
+    // }
 
   
-    const project = await Project.create({
-        userId: req.userId,
-        name,
-        workspacePath: null,
-        fileTree: null,
-        normalizedIssues: null,
-        gemini: { status: "PENDING" },
-        status: "UNZIPPING"
-      });
+    // const project = await Project.create({
+    //     userId: req.userId,
+    //     name,
+    //     workspacePath: null,
+    //     fileTree: null,
+    //     normalizedIssues: null,
+    //     gemini: { status: "PENDING" },
+    //     status: "UNZIPPING"
+    //   });
    
-    const workspacePath = await unzipToWorkspace(file.path, name);
+    // const workspacePath = await unzipToWorkspace(file.path, name);
   
-    await Project.findByIdAndUpdate(project._id, {
-        workspacePath,
-        status: "CONFIGURING YOUR PROJECT"
-      });
-    ensureArchitectureConfig(workspacePath);
-    await Project.findByIdAndUpdate(project._id, {
-        status: "IGNITING ENGINE"
-      });
+    // await Project.findByIdAndUpdate(project._id, {
+    //     workspacePath,
+    //     status: "CONFIGURING YOUR PROJECT"
+    //   });
+    // ensureArchitectureConfig(workspacePath);
+    // await Project.findByIdAndUpdate(project._id, {
+    //     status: "IGNITING ENGINE"
+    //   });
 
       
-    fs.unlinkSync(file.path);
+    // fs.unlinkSync(file.path);
    
-    const scanResult = await runScan(workspacePath);
+    // const scanResult = await runScan(workspacePath);
 
-     await Project.findByIdAndUpdate(project._id, {
-        fileTree: scanResult.fileTree,
-        normalizedIssues: scanResult.normalizedIssues,
-        status: "ANALYSING THROUGHPUT"
-      });
+    //  await Project.findByIdAndUpdate(project._id, {
+    //     fileTree: scanResult.fileTree,
+    //     normalizedIssues: scanResult.normalizedIssues,
+    //     status: "ANALYSING THROUGHPUT"
+    //   });
     
    
     
     
   
     
-    if (scanResult.normalizedIssues.length > 0) {
-      enrichWithGemini(scanResult.normalizedIssues)
-        .then(async (geminiRes) => {
-            console.log(" COMPLETED ");
-          await Project.findByIdAndUpdate(project._id, {
-            gemini: { status: "COMPLETED", response: geminiRes },
-            status:"COMPLETED"
-          });
-        })
-        .catch(async () => {
-          await Project.findByIdAndUpdate(project._id, {
-            gemini: { status: "FAILED" },
-            status:"FAILED"
-          });
-        });
-    }
+    // if (scanResult.normalizedIssues.length > 0) {
+    //   enrichWithGemini(scanResult.normalizedIssues)
+    //     .then(async (geminiRes) => {
+    //         console.log(" COMPLETED ");
+    //       await Project.findByIdAndUpdate(project._id, {
+    //         gemini: { status: "COMPLETED", response: geminiRes },
+    //         status:"COMPLETED"
+    //       });
+    //     })
+    //     .catch(async () => {
+    //       await Project.findByIdAndUpdate(project._id, {
+    //         gemini: { status: "FAILED" },
+    //         status:"FAILED"
+    //       });
+    //     });
+    // }
     
-    res.status(200).json({
-      message: "Scan completed",
-      projectId: project._id,
-      result: scanResult
-    });
+    // res.status(200).json({
+    //   message: "Scan completed",
+    //   projectId: project._id,
+    //   result: scanResult
+    // });
 
   } catch (err) {
     console.error(err);
@@ -112,7 +170,7 @@ export const getProjectById = async (req, res) => {
       
       const currentUserId = req.userId;
       const ownerIdFromQuery = req.query.ownerId; 
-     
+      console.log(" currentUserId : ",currentUserId);
 
     const ownerIdToUse = ownerIdFromQuery || currentUserId;
 
@@ -120,7 +178,7 @@ export const getProjectById = async (req, res) => {
       _id: projectId,
       userId: ownerIdToUse,
     });
-
+    console.log(" project user ID : ",project.userId);
     const shared = await SharedProject.findOne({
         projectId,
         status: "active",
@@ -137,7 +195,15 @@ export const getProjectById = async (req, res) => {
           await shared.save();
         }
       }
-    
+      if (
+        project &&
+        project.userId.toString() === currentUserId.toString() &&
+        project.seen === false
+      ) {
+
+        project.seen = true;
+        await project.save();
+      }
     
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -180,4 +246,41 @@ export const getProjectById = async (req, res) => {
       });
     }
   };
-  
+
+  export const getActiveProject = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const project = await Project.findOne({
+      userId,
+      $or: [
+        { status: { $nin: ["COMPLETED", "FAILED"] } }, // still running
+        { seen: false }                                // finished but unseen
+      ]
+    })
+      .sort({ createdAt: -1 })
+      .select("_id name status createdAt seen");
+
+    if (!project) {
+      return res.status(200).json({
+        exists: false
+      });
+    }
+
+    return res.status(200).json({
+      exists: true,
+      project: {
+        projectId: project._id,
+        name: project.name,
+        status: project.status,
+        seen: project.seen
+      }
+    });
+
+  } catch (err) {
+    console.error("getActiveProject error:", err);
+    return res.status(500).json({
+      message: "Failed to fetch active project"
+    });
+  }
+};

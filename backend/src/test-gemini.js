@@ -1,9 +1,9 @@
 // import { GoogleGenAI } from "@google/genai";
 
 // const ai = new GoogleGenAI({
-//   apiKey: 
+//   apiK
 // });
-
+// 
 // console.log("Node version:", process.version);
 // console.log("fetch:", typeof fetch);
 
