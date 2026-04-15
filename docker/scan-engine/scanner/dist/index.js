@@ -50,8 +50,7 @@ async function runScan(targetPath) {
     const securityIssues = [];
     const browserIssues = [];
     const localPerfIssues = [];
-    console.log("FILES SCANNED:");
-    files.forEach(f => console.log(" ", f));
+    
     // --------------------
     // GLOBAL CONTEXTS
     // --------------------
@@ -144,7 +143,7 @@ async function runScan(targetPath) {
                         line
                     });
                 }
-                console.log(chalk_1.default.yellow(`${rule.severity === "high" ? "❌" : "⚠️"} ${rule.id} [${rule.severity.toUpperCase()}]`), chalk_1.default.gray(`${file}:${line}`), "\n ", result, "\n");
+              
             }
         }, 
         // ====================
@@ -163,26 +162,15 @@ async function runScan(targetPath) {
                 ...issue,
                 fromFile: file
             });
-            console.log(chalk_1.default.yellow(`⚠️ ${issue.id} [${issue.severity.toUpperCase()}]`), chalk_1.default.gray(issue.node
-                ? `${file}:${issue.node.startPosition.row + 1}`
-                : file), "\n ", issue.message, "\n");
+          
         }
     }
     // ======================================================
     // ARCHITECTURE RULES (GLOBAL)
     // ======================================================
     const archIssues = (0, architecture_1.runArchitectureRules)(archContext, summaries, targetPath);
-    console.log("ARCH ISSUES FOUND:", archIssues.length);
-    for (const issue of archIssues) {
-        console.log(chalk_1.default.magenta(`🏗️ ${issue.id} [${issue.severity.toUpperCase()}]`), "\n ", issue.message);
-        if ("from" in issue)
-            console.log("  From:", issue.from);
-        if ("to" in issue)
-            console.log("  To:  ", issue.to);
-        if ("functionName" in issue)
-            console.log("  Function:", issue.functionName);
-        console.log();
-    }
+    
+ 
     // ======================================================
     // CROSS-FILE PERFORMANCE
     // ======================================================
@@ -194,8 +182,7 @@ async function runScan(targetPath) {
     // NORMALIZATION + LLM
     // ======================================================
     const normalized = (0, normalize_issue_1.normalizeIssues)(archIssues, [...localPerfIssues, ...crossFilePerfIssues], securityIssues, browserIssues);
-    console.log("\n🧠 NORMALIZED ISSUES:");
-    console.log(JSON.stringify(normalized, null, 2));
+    
     const scanResult = {
         fileTree,
         normalizedIssues: normalized,

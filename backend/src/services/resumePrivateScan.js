@@ -22,7 +22,8 @@ export async function resumePrivateScan({
   await scanQueue.add("scan-project", {
     scanId,
     repoUrl,
-    tokenReference
+    tokenReference,
+    userId
   });
 
   return scanId;

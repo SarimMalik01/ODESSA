@@ -3,8 +3,9 @@ import { User } from "../models/User.model.js";
 
 export const requireAuth = async (req, res, next) => {
   try {
+    
     const token = req.cookies.session;
-
+    
 
     if (!token) {
       return res.status(401).json({ message: "Not authenticated buffon" });

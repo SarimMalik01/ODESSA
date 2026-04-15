@@ -53,7 +53,8 @@ export const uploadProject = async (req, res) => {
       "scan-project",
       {
         scanId,
-        repoUrl: url
+        repoUrl: url,
+        userId:req.userId
       },
       {
         attempts: 1,
@@ -152,7 +153,7 @@ export const getAllProjects = async (req, res) => {
       console.log(userId)
       
       const projects = await Project.find({ userId })
-        .select("_id name createdAt status")
+        .select("_id name createdAt status gemini.errorMeta.reason")
         .sort({ createdAt: -1 });
         console.log(" propjects : ",projects)
       res.status(200).json(projects);
@@ -254,7 +255,7 @@ export const getProjectById = async (req, res) => {
     const project = await Project.findOne({
       userId,
       $or: [
-        { status: { $nin: ["COMPLETED", "FAILED"] } }, // still running
+        { status: { $nin: ["COMPLETED", "FAILED","BLOCKED"] } }, // still running
         { seen: false }                                // finished but unseen
       ]
     })
@@ -281,6 +282,42 @@ export const getProjectById = async (req, res) => {
     console.error("getActiveProject error:", err);
     return res.status(500).json({
       message: "Failed to fetch active project"
+    });
+  }
+};
+
+export const markProjectAsSeen = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const userId = req.userId; 
+
+    console.log(" userID : ",userId);
+    console.log(" project ID : ",projectId);
+    const project = await Project.findOneAndUpdate(
+      {
+        _id: projectId,
+        userId,          // 🔒 ensure ownership
+      },
+      {
+        $set: { seen: true },
+      },
+      { new: true }
+    );
+    console.log(" project : ",project);
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      projectId: project._id,
+    });
+  } catch (err) {
+    console.error("Mark as seen failed:", err);
+    return res.status(500).json({
+      message: "Failed to mark project as seen",
     });
   }
 };

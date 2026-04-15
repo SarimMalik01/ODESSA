@@ -46,11 +46,32 @@ export default function ActiveScanCard() {
   };
 
   /* =========================
+     MARK AS SEEN
+     ========================= */
+  const markAsSeen = async () => {
+    if (!project) return;
+
+    try {
+      await fetch(
+        `http://127.0.0.1:5000/api/projects/${project.projectId}/seen`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      // Remove card immediately from UI
+      setProject(null);
+    } catch (err) {
+      console.error("Mark as seen failed:", err);
+    }
+  };
+
+  /* =========================
      POLLING
      ========================= */
   useEffect(() => {
     fetchActiveScan();
-
     const interval = setInterval(fetchActiveScan, 2000);
     return () => clearInterval(interval);
   }, []);
@@ -59,25 +80,27 @@ export default function ActiveScanCard() {
 
   const isCompleted = project.status === "COMPLETED";
   const isFailed = project.status === "FAILED";
+  const isBlocked = project.status === "BLOCKED";
+  const isTerminal = isCompleted || isFailed || isBlocked;
 
   return (
     <div
       className={`
-        rounded-xl
-        border
-        bg-white/5
-        p-5
-        flex items-center gap-4
-        animate-fade-in
+        rounded-xl border bg-white/5 p-5
+        flex items-center gap-4 animate-fade-in
         ${
           isCompleted
             ? "border-green-500/40 animate-soft-green"
+            : isFailed
+            ? "border-red-500/30"
+            : isBlocked
+            ? "border-gray-500/30"
             : "border-white/10"
         }
       `}
     >
       {/* Spinner / Logo */}
-      {!isCompleted && !isFailed && (
+      {!isTerminal && (
         <img
           src={LOGO_VIDEO}
           alt="ODESSA scanning"
@@ -91,36 +114,75 @@ export default function ActiveScanCard() {
           {project.name}
         </span>
 
-        {!isCompleted && !isFailed && (
+        {!isTerminal && (
           <span className="text-xs text-white/50">
             {STATUS_TO_LABEL[project.status] ?? "Processing"}
           </span>
         )}
 
+        {/* COMPLETED */}
         {isCompleted && (
-          <button
-            onClick={() => navigate(`/report/${project.projectId}`)}
-            className="
-              mt-2
-              w-fit
-              px-3 py-1.5
-              text-xs font-semibold
-              rounded-full
-              bg-green-500/20
-              text-green-400
-              border border-green-500/30
-              hover:bg-green-500/30
-              transition
-            "
-          >
-            View Project
-          </button>
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              onClick={() => navigate(`/report/${project.projectId}`)}
+              className="
+                px-3 py-1.5 text-xs font-semibold rounded-full
+                bg-green-500/20 text-green-400
+                border border-green-500/30
+                hover:bg-green-500/30 transition
+              "
+            >
+              View Project
+            </button>
+
+            <button
+              onClick={markAsSeen}
+              className="
+                px-3 py-1.5 text-xs rounded-full
+                bg-white/5 text-white/60
+                border border-white/10
+                hover:bg-white/10 transition
+              "
+            >
+              Mark as seen
+            </button>
+          </div>
         )}
 
+        {/* FAILED */}
         {isFailed && (
-          <span className="mt-2 text-xs text-red-400">
-            Scan failed
-          </span>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-red-400">Scan failed</span>
+            <button
+              onClick={markAsSeen}
+              className="
+                px-3 py-1.5 text-xs rounded-full
+                bg-white/5 text-white/60
+                border border-white/10
+                hover:bg-white/10 transition
+              "
+            >
+              Mark as seen
+            </button>
+          </div>
+        )}
+
+        {/* BLOCKED */}
+        {isBlocked && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-gray-400">Analysis blocked</span>
+            <button
+              onClick={markAsSeen}
+              className="
+                px-3 py-1.5 text-xs rounded-full
+                bg-white/5 text-white/60
+                border border-white/10
+                hover:bg-white/10 transition
+              "
+            >
+              Mark as seen
+            </button>
+          </div>
         )}
       </div>
     </div>

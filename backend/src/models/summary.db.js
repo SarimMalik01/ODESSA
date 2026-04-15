@@ -30,10 +30,19 @@ const ProjectSchema = new mongoose.Schema(
     gemini: {
       status: {
         type: String,
-        enum: ["PENDING", "COMPLETED", "FAILED"],
+        enum: ["PENDING", "COMPLETED", "FAILED", "SKIPPED"],
         default: "PENDING"
       },
-      response: Object
+      response: Object,
+    
+      usage: {
+        estimatedTokens: Number,
+        estimatedCostINR: Number
+      },
+    
+      errorMeta: {
+        type: Object
+      }
     },
     seen:{
       type:Boolean,
@@ -49,7 +58,8 @@ const ProjectSchema = new mongoose.Schema(
         "SCANNING",
         "ANALYZING",
         "COMPLETED",
-        "FAILED"
+        "FAILED",
+        "BLOCKED"
       ],
       default: "ENQUEUEING"
     }

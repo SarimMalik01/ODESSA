@@ -1,6 +1,6 @@
 import express from "express";
 import { uploadZip } from "../middleware/upload.middleware.js";
-import { getAllProjects,uploadProject,getProjectById ,getLatestProjectStatus,getActiveProject} from "../controllers/project.controller.js";
+import { getAllProjects,uploadProject,getProjectById ,getLatestProjectStatus,getActiveProject,markProjectAsSeen} from "../controllers/project.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createShareLink,accessSharedProject,getSharedProjects,markAllCommentsRead } from "../controllers/sharedProject.controller.js";
 
@@ -25,6 +25,14 @@ router.post(
     markAllCommentsRead
   );
   
+
+  router.post(
+    "/:projectId/seen",
+    requireAuth,
+    markProjectAsSeen
+  );
+
+
 router.post(
     "/:projectId/share",
     requireAuth,

@@ -13,7 +13,7 @@ const REDIS_CONNECTION = {
 export const scanWorker = new Worker(
   "scanQueue",
   async (job) => {
-    const { scanId, repoUrl, tokenReference } = job.data;
+    const { scanId, repoUrl, tokenReference,userId } = job.data;
 
     let gitToken = null;
 
@@ -25,10 +25,14 @@ export const scanWorker = new Worker(
     const dockerArgs = [
       "run",
       "--rm",
+      "--network", "backend_default",
       "-e", `SCAN_ID=${scanId}`,
       "-e", `REPO_URL=${repoUrl}`,
       "-e", `MONGO_URI=${process.env.MONGO_URI}`,
-      "-e", `GEMINI_API_KEY=${process.env.GEMINI_API_KEY}`
+      "-e", `GEMINI_API_KEY=${process.env.GEMINI_API_KEY}`,
+      "-e", `REDIS_HOST=${process.env.REDIS_HOST || "redis"}`,
+      "-e", `REDIS_PORT=6379`,
+      "-e", `USER_ID=${userId}`
     ];
 
     if (gitToken) {

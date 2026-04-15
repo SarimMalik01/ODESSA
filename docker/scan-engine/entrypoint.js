@@ -12,7 +12,8 @@ const {
   SCAN_ID,
   REPO_URL,
   MONGO_URI,
-  GIT_TOKEN
+  GIT_TOKEN,
+  USER_ID
 } = process.env;
 
 if (!SCAN_ID || !REPO_URL || !MONGO_URI) {
@@ -107,15 +108,44 @@ async function main() {
     /* =====================
        COMPLETED
        ===================== */
-    await updateProject(db, {
-      gemini: {
-        status: "COMPLETED",
-        response: geminiResponse
-      },
-      status: "COMPLETED"
-    });
+       await updateProject(db, {
+        gemini: {
+          status: "COMPLETED",
+          response: geminiResponse.response,
+          usage: geminiResponse.usage
+        },
+        status: "COMPLETED"
+      });
+      
 
     console.log("✅ Scan completed successfully");
+    
+    console.log("📡 Calling backend /odessa/upsert...");
+
+    const res = await fetch("http://backend:5000/odessa/upsert", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        issues: rewrittenIssues,
+        gemini: geminiResponse.response,
+        scanId: SCAN_ID,
+        repoId: REPO_URL
+      })
+    });
+    
+    console.log("📡 Response status:", res.status);
+    
+    const text = await res.text();
+    console.log("📡 Response body:", text);
+    
+    if (!res.ok) {
+      console.error("❌ Upsert FAILED");
+      throw new Error(`Upsert failed: ${res.status}`);
+    }
+    
+    console.log("✅ Issues actually upserted to RAG");
     process.exit(0);
 
   } catch (err) {
@@ -123,12 +153,24 @@ async function main() {
 
     try {
       const db = client.db();
-      await updateProject(db, {
-        status: "FAILED",
-        error: err.message
-      });
+      if(err.code==="GEMINI_COST_LIMIT" || err.code=="GEMINI_RATE_LIMIT"){
+        await updateProject(db,{
+            status:"BLOCKED",
+            gemini:{
+                status:"SKIPPED",
+                errorMeta:err.meta
+            }
+        });
+
+        process.exit(0);
+      }else{
+        await updateProject(db, {
+            status: "FAILED",
+            error: err.message
+          });
+      }
     } catch (dbErr) {
-      console.error("❌ Failed to update DB after crash:", dbErr);
+      console.error(" Failed to update DB after crash:", dbErr);
     }
 
     process.exit(1);

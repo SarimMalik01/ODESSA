@@ -144,7 +144,7 @@ async function runScan(targetPath) {
                         line
                     });
                 }
-                console.log(chalk_1.default.yellow(`${rule.severity === "high" ? "❌" : "⚠️"} ${rule.id} [${rule.severity.toUpperCase()}]`), chalk_1.default.gray(`${file}:${line}`), "\n ", result, "\n");
+                // console.log(chalk_1.default.yellow(`${rule.severity === "high" ? "❌" : "⚠️"} ${rule.id} [${rule.severity.toUpperCase()}]`), chalk_1.default.gray(`${file}:${line}`), "\n ", result, "\n");
             }
         }, 
         // ====================
@@ -160,29 +160,36 @@ async function runScan(targetPath) {
         // ---- PER-FILE PERFORMANCE RULES ----
         for (const issue of (0, performance_1.runPerformanceRules)(perfContext)) {
             localPerfIssues.push({
-                ...issue,
-                fromFile: file
+                id: issue.id,
+                severity: issue.severity,
+                message: issue.message,
+            
+                fromFile: file,   // ✅ keep this tag
+            
+                line: issue.node?.startPosition.row + 1,
+                column: issue.node?.startPosition.column + 1
             });
-            console.log(chalk_1.default.yellow(`⚠️ ${issue.id} [${issue.severity.toUpperCase()}]`), chalk_1.default.gray(issue.node
-                ? `${file}:${issue.node.startPosition.row + 1}`
-                : file), "\n ", issue.message, "\n");
+            
+            // console.log(chalk_1.default.yellow(`⚠️ ${issue.id} [${issue.severity.toUpperCase()}]`), chalk_1.default.gray(issue.node
+            //     ? `${file}:${issue.node.startPosition.row + 1}`
+            //     : file), "\n ", issue.message, "\n");
         }
     }
     // ======================================================
     // ARCHITECTURE RULES (GLOBAL)
     // ======================================================
     const archIssues = (0, architecture_1.runArchitectureRules)(archContext, summaries, targetPath);
-    console.log("ARCH ISSUES FOUND:", archIssues.length);
-    for (const issue of archIssues) {
-        console.log(chalk_1.default.magenta(`🏗️ ${issue.id} [${issue.severity.toUpperCase()}]`), "\n ", issue.message);
-        if ("from" in issue)
-            console.log("  From:", issue.from);
-        if ("to" in issue)
-            console.log("  To:  ", issue.to);
-        if ("functionName" in issue)
-            console.log("  Function:", issue.functionName);
-        console.log();
-    }
+    // console.log("ARCH ISSUES FOUND:", archIssues.length);
+    // for (const issue of archIssues) {
+    //     console.log(chalk_1.default.magenta(`🏗️ ${issue.id} [${issue.severity.toUpperCase()}]`), "\n ", issue.message);
+    //     if ("from" in issue)
+    //         console.log("  From:", issue.from);
+    //     if ("to" in issue)
+    //         console.log("  To:  ", issue.to);
+    //     if ("functionName" in issue)
+    //         console.log("  Function:", issue.functionName);
+    //     console.log();
+    // }
     // ======================================================
     // CROSS-FILE PERFORMANCE
     // ======================================================

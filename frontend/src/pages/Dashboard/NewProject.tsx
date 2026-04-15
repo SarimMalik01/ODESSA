@@ -14,6 +14,7 @@ import { Github } from "lucide-react";
     ANALYZING: "Analysing throughput",
     COMPLETED: "Completed",
     FAILED: "Failed",
+    BLOCKED:"Analysis Paused"
   };
   
 
@@ -40,6 +41,7 @@ export default function NewProject() {
   // polling state
   const [status, setStatus] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [blockReason, setBlockReason] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -61,12 +63,14 @@ export default function NewProject() {
         const json = await res.json();
 
         setStatus(json.status);
-
+        if (json.status === "BLOCKED") {
+          setBlockReason(json?.gemini?.errorMeta?.reason ?? null);
+        }
         if (json.projectId && !projectId) {
           setProjectId(json.projectId);
         }
 
-        if (json.status === "COMPLETED" || json.status === "FAILED") {
+        if (json.status === "COMPLETED" || json.status === "FAILED" || json.status=="BLOCKED") {
           clearInterval(interval);
         }
       } catch (err) {
@@ -240,7 +244,7 @@ export default function NewProject() {
               >
                 ✔ Analysis Complete
               </span>
-
+               
               <button
                 onClick={() => navigate(`/report/${projectId}`)}
                 className="
@@ -259,6 +263,35 @@ export default function NewProject() {
               Something went wrong during analysis
             </p>
           )}
+
+{status === "BLOCKED" && (
+  <div className="flex flex-col items-center gap-3">
+    <span
+      className="
+        px-3 py-1 text-xs font-semibold rounded-full
+        bg-yellow-500/20 text-yellow-400
+        border border-yellow-500/30
+      "
+    >
+      ⚠ Analysis Paused
+    </span>
+
+    <p className="text-yellow-400 text-sm text-center max-w-sm">
+      {blockReason === "RATE_LIMIT" && (
+        <>You’ve hit your hourly AI usage limit. Please try again later.</>
+      )}
+
+      {blockReason === "Input Tokens Exceeded MAX LIMIT" && (
+        <>This repository is too large to analyze in one request.</>
+      )}
+
+      {!blockReason && (
+        <>Analysis was paused due to usage limits.</>
+      )}
+    </p>
+  </div>
+)}
+
         </div>
       )}
     </div>
