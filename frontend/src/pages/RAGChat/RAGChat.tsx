@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { CornerDownLeft } from 'lucide-react';
 
 import LeftSidebar from "./components/LeftSidebar";
 import RightSidebar from "./components/RightSidebar";
@@ -152,7 +153,17 @@ export default function RAGChat() {
         
         {/* TOP BAR */}
         <div className="flex justify-between items-center px-4 py-2 border-b border-white/10">
-          <button onClick={() => setLeftOpen((p) => !p)}>☰</button>
+        <div className="flex items-center gap-3">
+    <button onClick={() => setLeftOpen((p) => !p)}>☰</button>
+
+    {/* 🔥 Dashboard Link */}
+    <button
+      onClick={() => navigate("/dashboard")}
+      className="text-sm text-grey-400 hover:text-blue-300 transition"
+    >
+      <CornerDownLeft />
+    </button>
+  </div>
 
           <h1 className="text-lg font-semibold tracking-widest">
             {currentProject || "ODESSA"}
