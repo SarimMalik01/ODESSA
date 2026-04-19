@@ -14,4 +14,11 @@ scanner/src/
 # OS / misc
 .DS_Store
 
+# hide source folders
+backend/
+frontend/
+docker/
+scanner/
+
+
 ODESSA(HLD)-Editable
